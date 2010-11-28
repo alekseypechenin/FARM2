@@ -1,0 +1,13 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  ftype: MyString
+  fstate: 
+  x: 1
+  y: 
+
+two:
+  ftype: MyString
+  fstate: 
+  x: 1
+  y: 

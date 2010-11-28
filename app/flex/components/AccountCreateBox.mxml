@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="100%"
+    height="100%" label="Создать аккаунт">
+<mx:Metadata>
+    [Event(name="accountCreate",
+           type="events.AccountCreateEvent")]
+</mx:Metadata>
+<mx:Script>
+<![CDATA[
+    import mx.controls.Alert;
+    import mx.rpc.events.ResultEvent;
+    import mx.rpc.events.FaultEvent
+    import events.AccountCreateEvent;
+    import Utils.Config;
+    
+    private function createAccount():void {
+    	
+    	if (passwordTI.text != confirmPasswordTI.text)
+    	{
+    		 Alert.show("Введенные пароли не совпадают","Ошибка");
+    		return;
+    	}
+    	
+        svcAccountCreate.send();
+    }
+
+    private function handleAccountCreateResult(
+    event:ResultEvent):void 
+    {
+        var result:Object = event.result;
+        if (result == "error") {
+            Alert.show("Ваш аккаунт был не создан.\t" + 
+            		"Возможно логин или емайл уже заняты","Ошибка");
+        } else {
+            dispatchEvent(new AccountCreateEvent(XML(result)));
+        }
+    }
+    
+    private function handleAccountFaultResult(event:FaultEvent):void 
+    {
+        Alert.show("Извините, сервер не доступен. Повторите попытку позже.");
+    }
+    
+    [Bindable]
+    private var serverUrlAccountCreate:String = Config.serverURL + "user/signup_xml";
+    
+]]>
+</mx:Script>
+    <mx:HTTPService
+        id="svcAccountCreate"
+        url="{serverUrlAccountCreate}"
+        contentType="application/xml"
+        resultFormat="e4x"
+        method="POST"
+        result="handleAccountCreateResult(event)"
+        fault="handleAccountFaultResult(event)">
+        <mx:request>
+            <user>
+                <login>{loginTI.text}</login>
+                <password>{passwordTI.text}</password>
+                <password_confirmation>{confirmPasswordTI.text}</password_confirmation>
+                <email>{emailTI.text}</email>
+            </user>
+        </mx:request>
+    </mx:HTTPService>
+    <mx:Form labelWidth="150">
+    	<mx:FormItem required="true" label="Почтовый адресс">
+            <mx:TextInput id="emailTI"/>
+        </mx:FormItem>
+        <mx:FormItem required="true" label="Логин">
+            <mx:TextInput id="loginTI"/>
+        </mx:FormItem>
+        <mx:FormItem required="true" label="Пароль">
+            <mx:TextInput id="passwordTI"
+                displayAsPassword="true"/>
+        </mx:FormItem>
+        <mx:FormItem required="true" label="Подтвердите пароль">
+            <mx:TextInput id="confirmPasswordTI"
+                displayAsPassword="true"/>
+        </mx:FormItem>
+        <mx:FormItem>
+            <mx:Button id="createAccountButton"
+                label="Создать аккаунт"
+                click="createAccount()"/>
+        </mx:FormItem>
+    </mx:Form>
+</mx:VBox>

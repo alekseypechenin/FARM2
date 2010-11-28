@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	horizontalAlign="center" 
+	verticalAlign="top"
+    width="100%" 
+    height="100%"
+    currentState="ContinueMenu">
+<mx:Metadata>
+[Event(name="logout", type="events.LogoutEvent")]
+</mx:Metadata>
+<mx:Script>
+	<![CDATA[
+	
+		import mx.events.*;
+		import mx.controls.Alert;  
+		import events.LogoutEvent
+		import mx.rpc.events.ResultEvent;
+    	import mx.rpc.events.FaultEvent;
+	
+		// Namespaces
+		import Core.*;
+		import Utils.*;
+		import events.LogoutEvent;		
+	
+		protected var inGame:Boolean = false;
+		
+		[Bindable]
+    	private var serverUrlLogout:String = Config.serverURL + "user/logout";
+		
+		// Erases when application was completly loaded
+		public function creationComplete():void
+	    {
+	    	// NOTHING												
+	    }
+	    
+	    // One frame ping (Main loop of application)
+	    public function enterFrame(event:Event):void
+	    {	
+	    	myCanvas.graphics.clear();    	
+	    	if (inGame)	    	
+	    	{
+	    		
+	    		/// Game Loop
+	    		if (GameObjectManager.Instance.lastError != null)
+	    		{
+	    			currentState = "ErrorScreen";
+	    			labelId.text = GameObjectManager.Instance.lastError;
+	    			return;	
+	    		}	
+	    				    		   
+		    	GameObjectManager.Instance.enterFrame();		  			    			    	
+		    	myCanvas.graphics.beginBitmapFill(GameObjectManager.Instance.backBuffer, null, false, false);
+		    	myCanvas.graphics.drawRect(0 , 0, myCanvas.width, myCanvas.height);
+		    	myCanvas.graphics.endFill();
+	    	}	
+	    }
+	    
+	    // Click Event handler
+	    private function click(event:MouseEvent):void
+	    {
+	    	GameObjectManager.Instance.click(event);
+	    }
+	    
+	    // MouseDown Event handler
+	    private function mouseDown(event:MouseEvent):void
+		{
+			GameObjectManager.Instance.mouseDown(event);
+	    }
+	    
+	    // MouseUp Event handler
+	    private function mouseUp(event:MouseEvent):void
+		{
+			GameObjectManager.Instance.mouseUp(event);
+	    }
+	    
+	    // MouseMove Event handler
+	    private function mouseMove(event:MouseEvent):void
+		{
+			GameObjectManager.Instance.mouseMove(event);
+	    }
+	    	   
+	    // EnterGame Event handler
+	   	protected function enterGame(event:Event):void
+		{
+			GameObjectManager.Instance.startup(Config.serverURL,myCanvas.width,myCanvas.height);			
+			inGame = true;
+	    }
+	    
+	    // ExitGame Event handler
+	    protected function exitGame(event:Event):void
+		{
+			GameObjectManager.Instance.shutdown();
+			inGame = false;
+		}  
+			
+		// btnExit Event handler	
+	    protected function btnExitClicked(event:Event):void
+		{			
+			currentState = "ContinueMenu"			
+	    }
+	    
+	    // BtnStartGame Event handler
+	    protected function btnStartGameClicked(event:Event):void
+		{
+			currentState = "Game"
+		}
+		
+		// BtnGive Event handler	
+	    protected function  givesClicked(givesState:int):void
+		{			
+			GivesState.State = givesState;
+			hboxGives.visible = false;
+	    }
+	    
+	    
+	    // LOG OUT Handler 
+	    
+	    // BtnStartGame Event handler
+	    protected function btnLogoutClicked(event:Event):void
+		{
+			svcAccountLogout.send();
+		}
+		
+		private function handleAccountLoginResult(event:ResultEvent):void 
+    	{
+	        dispatchEvent(new LogoutEvent(LogoutEvent.LOGOUT));
+   		}
+    
+   		private function handleAccountFaultResult(event:FaultEvent):void 
+ 	  	{
+     		Alert.show("Извините, сервер не доступен. Повторите попытку позже.");
+     		dispatchEvent(new LogoutEvent(LogoutEvent.LOGOUT));
+   		}
+  	  	 
+	]]>
+    </mx:Script>
+
+	<mx:HTTPService
+        id="svcAccountLogout"
+        url="{serverUrlLogout}"
+        method="POST"
+        result="handleAccountLoginResult(event)"
+        fault="handleAccountFaultResult(event)">
+    </mx:HTTPService>
+   <mx:states>
+		<mx:State 
+			name="Game"			
+			enterState="enterGame(event)"
+        	exitState="exitGame(event)">
+        	<mx:AddChild relativeTo="{this}" position="lastChild">
+        		<mx:Canvas
+					enterFrame="enterFrame(event)"
+					click="click(event)"
+			    	mouseDown="mouseDown(event)"
+			    	mouseUp="mouseUp(event)"
+			    	mouseMove="mouseMove(event)"
+					width="800" height="400" id="myCanvas"/>
+        	</mx:AddChild>
+        	<mx:AddChild relativeTo="{myCanvas}" position="lastChild">
+				<mx:VBox id="hboxButton" horizontalAlign="center" paddingLeft="20" paddingRight="20" paddingTop="20" paddingBottom="20"  right="15" top="15" borderStyle="outset" backgroundColor="Green" backgroundAlpha="0.2">
+					<mx:Button id="btnGive" label="Выбрать растение" click="{hboxGives.visible = true}" width="150" height="30"/>
+					<mx:Button id="btnTake" label="Собрать растение"  click="{GivesState.State = GivesState.None}" width="150" height="30"/>
+					<mx:Button id="btnGrow" label="Вырастить растение" click="{CommandState.State = CommandState.Grow}" width="150" height="30"/>
+					<mx:Button id="btnExit" label="Выйти в Меню" click="btnExitClicked(event)" width="150" height="30"/>		
+				</mx:VBox>
+			</mx:AddChild>				
+			<mx:AddChild relativeTo="{myCanvas}" position="lastChild">
+				<mx:HBox id="hboxGives" backgroundColor="Green" borderStyle="outset" backgroundAlpha="0.7" x="{myCanvas.width/2-hboxGives.width/2}" 
+						 y="{myCanvas.height/2-hboxGives.height/2}" visible="false">
+					<mx:Image width="100" height="70" source="Media/Entities/potato/potato.png" click="givesClicked(GivesState.Potato)" />	
+					<mx:Image width="100" height="70" source="Media/Entities/clover/clover.png" click="givesClicked(GivesState.Clover)"/>
+					<mx:Image width="100" height="100" source="Media/Entities/Sunflower/Sunflower.png" click="givesClicked(GivesState.Sunflower)"/>	
+				</mx:HBox>
+			</mx:AddChild>
+			</mx:State>
+		<mx:State name="ContinueMenu">
+			<mx:AddChild relativeTo="{this}" position="lastChild">
+				<mx:VBox horizontalAlign="center">
+					<mx:Label text="Мы рады видеть Вас снова :)" fontSize="20" fontWeight="bold"/>
+					<mx:Spacer width="100" height="10"/>				
+					<mx:Button id="btnContinue" label="Продолжить играть" click="btnStartGameClicked(event)" width="140" height="30"/>
+					<mx:Button id="btnLogout" label="Выйти из игры" click="btnLogoutClicked(event)" width="140" height="30"/>
+				</mx:VBox>
+			</mx:AddChild>		
+		</mx:State>
+		<mx:State name="StartMenu">
+			<mx:AddChild relativeTo="{this}" position="lastChild">
+				<mx:VBox horizontalAlign="center">
+					<mx:Label text="Рад Вас видеть :)" fontSize="20" fontWeight="bold"/>
+					<mx:Spacer width="100" height="10"/>				
+					<mx:Button id="btnStart" label="Начать играть" click="btnStartGameClicked(event)" width="140" height="30"/>
+				</mx:VBox>
+			</mx:AddChild>		
+		</mx:State>
+		<mx:State name="ErrorScreen">
+			<mx:AddChild relativeTo="{this}" position="lastChild">
+				<mx:Button x="309" y="254" label="В главное меню" id="btnRestart" click="btnExitClicked(event)" width="127" height="30"/>
+			</mx:AddChild>			
+			<mx:AddChild relativeTo="{this}" position="lastChild">
+				<mx:TextArea id="labelId" left="197" top="115" fontSize="10" fontWeight="bold" width="360" height="131" editable="false"/>
+			</mx:AddChild>		
+			<mx:AddChild relativeTo="{this}" position="lastChild">
+				<mx:Label x="113" y="80" text="Возникла ошибка, пожалуйста, свяжитесь с администратором." width="496" height="27" fontWeight="normal" fontSize="15"/>
+			</mx:AddChild>
+		</mx:State>			
+	</mx:states>
+</mx:VBox>

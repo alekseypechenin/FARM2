@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:com="components.*"
+    layout="vertical"
+    backgroundGradientColors="[#ffffff, #c0c0c0]"
+    horizontalAlign="center"
+    verticalAlign="top"
+    paddingLeft="0"
+    paddingRight="0"
+    paddingTop="0"
+    paddingBottom="0"
+    width="100%"
+    height="100%"
+	frameRate="100"
+	creationComplete="creationComplete()">
+<mx:Script>
+<![CDATA[
+    import events.*;
+    import Utils.*;
+    
+    
+    private function creationComplete():void
+    {
+    	// Tries to read Server URL Adress if such parameter was assigned
+		if (Application.application.parameters.serverURL != null)
+		{
+			Config.serverURL = Application.application.parameters.serverURL;
+		}
+    }
+
+    private function handleAccountCreate(e:AccountCreateEvent):
+    void {
+    	mainBox.currentState = "StartMenu";
+        showMain();
+    }
+
+    private function handleLogin(e:LoginEvent):void {
+    	mainBox.currentState = "ContinueMenu";
+        showMain();
+    }
+    
+    private function handleLogout(e:LogoutEvent):void {
+        showSplashBox();
+    }
+        
+    private function showMain():void {
+        mainStack.selectedChild = mainBox;
+    }
+    
+    private function showSplashBox():void {
+        mainStack..selectedChild = splashBox;
+    }
+    
+]]>
+</mx:Script>
+   <mx:Label text="Тестовое приложения для игры в Ферму" color="Green" fontSize="20"/>
+        <mx:Spacer height="10"/>
+    <mx:ViewStack id="mainStack" width="100%" height="100%">
+        <com:SplashBox id="splashBox"
+            accountCreate="handleAccountCreate(event)"
+            login="handleLogin(event)"/>
+        <com:GameBox id="mainBox"
+        	logout="handleLogout(event)"/>
+    </mx:ViewStack>
+</mx:Application>

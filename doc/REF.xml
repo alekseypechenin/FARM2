@@ -1,0 +1,10 @@
+<country>
+	<field>
+		<clover 	id="1" x="7" y="7" state="1" /> 
+		<sunflower  id="1" x="9" y="9" state="1" /> 
+		<potato 	id="1" x="6" y="5" state="1" /> 
+		<clover 	id="1" x="5" y="5" state="1" /> 
+		<sunflower  id="1" x="3" y="4" state="1" /> 
+		<potato		id="1" x="4" y="3" state="1" />
+	</field>
+ </country>
