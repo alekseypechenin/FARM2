@@ -15,12 +15,29 @@
     
     private function createAccount():void {
     	
+    	if (loginTI.text.length == 0 || passwordTI.text.length == 0 || emailTI.text.length == 0)
+    	{
+    		 Alert.show("Все поля должны быть заполнены.","Ошибка");
+    		return;
+    	}
+    	
     	if (passwordTI.text != confirmPasswordTI.text)
     	{
     		 Alert.show("Введенные пароли не совпадают","Ошибка");
     		return;
     	}
     	
+    	if (loginTI.text.length < 3)
+    	{
+    		 Alert.show("Аккаунт должен быть не менее 3 букв.","Ошибка");
+    		return;
+    	}
+    	
+    	if (passwordTI.text.length < 5)
+    	{
+    		 Alert.show("Пароль должен быть не менее 5 букв.","Ошибка");
+    		return;
+    	}
         svcAccountCreate.send();
     }
 
